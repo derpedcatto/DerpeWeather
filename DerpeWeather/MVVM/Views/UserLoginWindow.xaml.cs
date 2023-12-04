@@ -1,5 +1,8 @@
-﻿using DerpeWeather.Utilities.Interfaces;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using DerpeWeather.Utilities.Interfaces;
+using DerpeWeather.Utilities.Messages;
 using DerpeWeather.ViewModels;
+using System;
 using System.ComponentModel;
 using System.Security;
 using System.Windows;
@@ -11,52 +14,50 @@ namespace DerpeWeather.Views
     /// </summary>
     public partial class UserLoginWindow : Window, IPasswordContainer
     {
+        private readonly IMessenger _messenger;
         private readonly UserLoginVM _viewModel;
+
         public SecureString Password => UserPasswordBox.SecurePassword;
+
+        public bool IsLoginSuccessful { get; private set; }
+
 
 
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public UserLoginWindow(UserLoginVM viewModel)
+        public UserLoginWindow(UserLoginVM viewModel, IMessenger messenger)
         {
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = _viewModel;
 
-            viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            _messenger = messenger;
+            _messenger.Register<LoginSuccessMsg>(this, OnLoginSuccess);
         }
 
 
 
-        /// <summary>
-        /// Event handler that closes current window and sets 'DialogResult' to 'true' if <see cref="UserLoginVM.IsLoginSuccessful" is set to true./>
-        /// </summary>
-        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void OnLoginSuccess(object recipient, LoginSuccessMsg message)
         {
-            if (e.PropertyName == nameof(UserLoginVM.IsLoginSuccessful))
-            {
-                if ((sender as UserLoginVM).IsLoginSuccessful)
-                {
-                    this.DialogResult = true;
-                    this.Close();
-                }
-            }
+            this.IsLoginSuccessful = true;
+            this.Close();
         }
 
 
-
-        #region Dispose
-        public void Dispose()
-        {
-            Password.Dispose();
-        }
 
         private void Window_Closed(object sender, System.EventArgs e)
         {
             Dispose();
             _viewModel.Dispose();
+            _messenger.UnregisterAll(this);
         }
-        #endregion
+
+
+
+        public void Dispose()
+        {
+            Password.Dispose();
+        }
     }
 }

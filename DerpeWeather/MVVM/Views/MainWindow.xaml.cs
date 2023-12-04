@@ -13,8 +13,6 @@ namespace DerpeWeather
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly ChooseUserWindow _chooseUserWindow;
-
         private readonly IMessenger _messenger;
         private readonly MainWindowVM _viewModel;
 
@@ -25,8 +23,7 @@ namespace DerpeWeather
         /// </summary>
         public MainWindow(
             MainWindowVM viewModel,
-            IMessenger messenger,
-            ChooseUserWindow chooseUserWindow)
+            IMessenger messenger)
         {
             InitializeComponent();
             _viewModel = viewModel;
@@ -34,7 +31,13 @@ namespace DerpeWeather
 
             _messenger = messenger;
             _messenger.Register<UserLogoutMsg>(this, OnUserLogout);
-            _chooseUserWindow = chooseUserWindow;
+        }
+
+
+
+        private void OnUserLogout(object recipient, UserLogoutMsg message)
+        {
+            this.Close();
         }
 
 
@@ -55,17 +58,6 @@ namespace DerpeWeather
         }
 
 
-
-        /// <summary>
-        /// Opens 'ChooseUserWindow' and closes the current one.
-        /// </summary>
-        /// <param name="message">Empty message.</param>
-        private void OnUserLogout(object recipient, UserLogoutMsg message)
-        {
-            _chooseUserWindow.Show();
-
-            this.Close();
-        }
 
         /// <summary>
         /// Disposes of everything / unregisters messages on window close.

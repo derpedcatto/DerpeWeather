@@ -2,6 +2,7 @@
 using DerpeWeather.Utilities.Messages;
 using DerpeWeather.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Windows;
 
 namespace DerpeWeather.Views
@@ -26,25 +27,15 @@ namespace DerpeWeather.Views
             DataContext = _viewModel;
 
             _messenger = messenger;
-            // _messenger.Register<OpenMainWindowMsg>(this, OnOpenMainWindow);
+            _messenger.Register<CloseChooseUserWindowMsg>(this, CloseChooseUserWindowMsgReceived);
         }
 
 
 
-        /// <summary>
-        /// On <see cref="OpenMainWindowMsg"passing/> received - closes current window and opens <see cref="MainWindow"/>,
-        /// sending message <see cref="UserLoginIdMsg"/> with <paramref name="userIdMsg"/> value to it.
-        /// </summary>
-        /// <param name="recipient"></param>
-        /// <param name="userIdMsg"></param>
-        /*private void OnOpenMainWindow(object recipient, OpenMainWindowMsg userIdMsg)
+        private void CloseChooseUserWindowMsgReceived(object recipient, CloseChooseUserWindowMsg message)
         {
-            var mainWindow = App.Current.Services.GetService<MainWindow>()!;
-            _messenger.Send(new UserLoginIdMsg(userIdMsg.Value));
-            mainWindow.Show();
             this.Close();
         }
-        */
 
 
 

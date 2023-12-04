@@ -5,9 +5,14 @@ using DerpeWeather.MVVM.Models;
 using DerpeWeather.MVVM.Views;
 using DerpeWeather.Utilities.Interfaces;
 using DerpeWeather.Utilities.Messages;
+using DerpeWeather.Views;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace DerpeWeather.MVVM.ViewModels
 {
@@ -15,14 +20,13 @@ namespace DerpeWeather.MVVM.ViewModels
     {
         #region Variables
 
-        private readonly UserPreferencesWindow _userPreferencesWindow;
-        private readonly AddLocationWindow _addLocationWindow;
+        private readonly CancellationTokenSource _cts;
+        private bool disposedValue;
 
         private readonly IUserRepo _userRepo;
         private readonly IMessenger _messenger;
         private readonly IWeatherApiClient _weatherApiClient;
         private Guid _userId;
-        private bool disposedValue;
 
         /// <summary>
         /// Weather fields list to display in View listview.
@@ -44,21 +48,19 @@ namespace DerpeWeather.MVVM.ViewModels
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public MainWindowVM (IUserRepo userRepo,
+        public MainWindowVM(
+            IUserRepo userRepo,
             IMessenger messenger,
-            IWeatherApiClient weatherApiClient,
-            UserPreferencesWindow userPreferencesWindow,
-            AddLocationWindow addLocationWindow)
+            IWeatherApiClient weatherApiClient)
         {
+            _cts = new();
+
             _userRepo = userRepo;
             _messenger = messenger;
             _weatherApiClient = weatherApiClient;
 
-            _userPreferencesWindow = userPreferencesWindow;
-
             _messenger.Register<UserLoginIdMsg>(this, OnUserLoginIdMsgReceived);
             _messenger.Register<NewTrackedWeatherLocationMsg>(this, OnAddNewLocationToListMsgReceived);
-            _addLocationWindow = addLocationWindow;
 
             WeatherList = new();
         }
@@ -70,42 +72,68 @@ namespace DerpeWeather.MVVM.ViewModels
         [RelayCommand]
         private void UserLogoutClick()
         {
+            var chooseUserWindow = App.Current.Services.GetRequiredService<ChooseUserWindow>();
+            chooseUserWindow.Show();
+
             _messenger.Send(new UserLogoutMsg());
         }
 
         [RelayCommand]
         private void UserPreferencesClick()
         {
-            _userPreferencesWindow.ShowDialog();
+            /*
+            var userPreferencesWindow = App.Current.Services.GetService<UserPreferencesWindow>();
+            userPreferencesWindow!.ShowDialog();
+            */
         }
 
         [RelayCommand]
         private async Task RefreshListClick()
         {
-            var user = _userRepo.GetUser(_userId);
-
-            WeatherList ??= new();
-
-            if (user.TrackedWeatherFields.Count >= 0)
+            try
             {
-                WeatherList.Clear();
+                var user = await _userRepo.GetUserAsync(_userId, _cts.Token);
+                var userWeatherList = user.TrackedWeatherFields;
 
-                foreach (var field in user.TrackedWeatherFields)
+                WeatherList ??= new();
+
+                if (userWeatherList.Count >= 0)
                 {
-                    var apiResponseObj = await _weatherApiClient.GetWeatherDataForToday(_userId, field.Location);
-                    if (apiResponseObj != null)
+                    WeatherList.Clear();
+
+                    var tasks = userWeatherList.Select(async field =>
                     {
-                        WeatherList.Add(apiResponseObj);
-                    }
+                        var apiResponseObj = await _weatherApiClient.GetWeatherDataForToday(_userId, field.Location);
+                        if (apiResponseObj != null)
+                        {
+                            WeatherList.Add(apiResponseObj);
+                        }
+                    });
+
+                    await Task.WhenAll(tasks);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+            catch (Exception ex)
+            {
+                AdonisUI.Controls.MessageBox.Show(
+                    ex.Message,
+                    "Refresh List Error!",
+                    AdonisUI.Controls.MessageBoxButton.OK,
+                    AdonisUI.Controls.MessageBoxImage.Error
+                );
             }
         }
 
         [RelayCommand]
         private void AddLocationClick()
         {
+            var addLocationWindow = App.Current.Services.GetService<AddLocationWindow>();
             _messenger.Send<AddLocationUserIdMsg>(new(_userId));
-            _addLocationWindow.ShowDialog();
+            addLocationWindow!.ShowDialog();
 
             // On success - Receives message to `OnAddNewLocationToListMsgReceived`
         }
@@ -147,7 +175,7 @@ namespace DerpeWeather.MVVM.ViewModels
 
             if (weatherField != null)
             {
-                _userRepo.AddNewTrackedLocation(_userId, message.Value);
+                await _userRepo.AddNewTrackedLocationAsync(_userId, message.Value, _cts.Token);
                 WeatherList.Add(weatherField);
             }
             else
@@ -174,6 +202,8 @@ namespace DerpeWeather.MVVM.ViewModels
                 if (disposing)
                 {
                     _messenger.UnregisterAll(this);
+                    _cts.Cancel();
+                    _cts.Dispose();
                 }
                 disposedValue = true;
             }

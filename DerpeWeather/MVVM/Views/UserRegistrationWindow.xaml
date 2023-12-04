@@ -10,6 +10,7 @@
     Title="Registration"
     Width="300"
     Height="400"
+    Closed="Window_Closed"
     ResizeMode="CanMinimize"
     mc:Ignorable="d">
     <Window.Style>

@@ -7,13 +7,12 @@ using DerpeWeather.DAL.DTO;
 using DerpeWeather.DAL.EF;
 using DerpeWeather.Utilities.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using DerpeWeather.MVVM.Models;
+using System.Threading;
 
 namespace DerpeWeather.DAL.Repos
 {
     public class UserRepo : IUserRepo
     {
-        // private bool disposedValue;
         private readonly EFContext _dbContext;
 
 
@@ -52,7 +51,7 @@ namespace DerpeWeather.DAL.Repos
             _dbContext.SaveChanges();
         }
 
-        public async Task AddNewUserAsync([NotNull] UserRegistrationDTO user, ISystemPreferenceFetcher systemPreferenceFetcher)
+        public async Task AddNewUserAsync([NotNull] UserRegistrationDTO user, ISystemPreferenceFetcher systemPreferenceFetcher, CancellationToken cancellationToken)
         {
             UserEntity newUser = new()
             {
@@ -74,7 +73,7 @@ namespace DerpeWeather.DAL.Repos
             newUser.TrackedWeatherFields = userTrackedWeatherFieldsList;
 
             _dbContext.Add(newUser);
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         #endregion
@@ -92,14 +91,18 @@ namespace DerpeWeather.DAL.Repos
                 .ToList();
         }
 
-        public async Task<ICollection<UserDTO>> GetAllUsersAsync()
+
+
+        public async Task<ICollection<UserDTO>> GetAllUsersAsync(CancellationToken cancellationToken)
         {
             return await _dbContext.Users
                 .Include(user => user.AppPreferences)
                 .Include(user => user.TrackedWeatherFields)
                 .Select(userDB => ConvertToUserDTO(userDB))
-                .ToListAsync();
+                .ToListAsync(cancellationToken: cancellationToken);
         }
+
+
 
         public UserDTO? GetUser(Guid userId)
         {
@@ -117,9 +120,47 @@ namespace DerpeWeather.DAL.Repos
             return ConvertToUserDTO(userEntity);
         }
 
+
+
+        public async Task<UserDTO?> GetUserAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            var userEntity = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken: cancellationToken);
+            if (userEntity == null)
+            {
+                return null;
+            }
+            return ConvertToUserDTO(userEntity);
+        }
+
+        public async Task<UserDTO?> GetUserAsync(string username, CancellationToken cancellationToken)
+        {
+            var userEntity = await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken: cancellationToken);
+            if (userEntity == null)
+            {
+                return null;
+            }
+            return ConvertToUserDTO(userEntity);
+        }
+
+
+
         public bool IsUserPasswordValid(Guid userId, string hashedPassword)
         {
             var user = _dbContext.Users.FirstOrDefault(i => i.Id == userId);
+            if (user != null)
+            {
+                if (user.Password == hashedPassword)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        public async Task<bool> IsUserPasswordValidAsync(Guid userId, string hashedPassword, CancellationToken cancellationToken)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(i => i.Id == userId, cancellationToken: cancellationToken);
             if (user != null)
             {
                 if (user.Password == hashedPassword)
@@ -158,6 +199,30 @@ namespace DerpeWeather.DAL.Repos
         }
 
 
+
+        private async Task UpdateUserPasswordAsync(UserEntity? existingUser, string password, CancellationToken cancellationToken)
+        {
+            if (existingUser != null)
+            {
+                existingUser.Password = password;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        public async Task UpdateUserPasswordAsync(Guid userId, string password, CancellationToken cancellationToken)
+        {
+            UserEntity? existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+            await UpdateUserPasswordAsync(existingUser, password, cancellationToken);
+        }
+
+        public async Task UpdateUserPasswordAsync(string username, string password, CancellationToken cancellationToken)
+        {
+            UserEntity? existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken: cancellationToken);
+            await UpdateUserPasswordAsync(existingUser, password, cancellationToken);
+        }
+
+
+
         private void UpdateUserUsername(UserEntity? existingUser, string username)
         {
             if (existingUser != null)
@@ -180,10 +245,35 @@ namespace DerpeWeather.DAL.Repos
         }
 
 
+
+        private async Task UpdateUserUsernameAsync(UserEntity? existingUser, string username, CancellationToken cancellationToken)
+        {
+            if (existingUser != null)
+            {
+                existingUser.Username = username;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        public async Task UpdateUserUsernameAsync(Guid userId, string username, CancellationToken cancellationToken)
+        {
+            UserEntity? existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+            await UpdateUserUsernameAsync(existingUser, username, cancellationToken);
+        }
+
+        public async Task UpdateUserUsernameAsync(string oldUsername, string username, CancellationToken cancellationToken)
+        {
+            UserEntity? existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == oldUsername, cancellationToken: cancellationToken);
+            await UpdateUserUsernameAsync(existingUser, username, cancellationToken);
+        }
+
+
+
         private void AddNewTrackedLocation(UserEntity? existingUser, string locationName)
         {
             if (existingUser != null)
             {
+                // _dbContext.Entry(existingUser).Reload();
                 _dbContext.Entry(existingUser).Reload();
                 var field = new UserTrackedWeatherFieldsEntity()
                 {
@@ -206,6 +296,37 @@ namespace DerpeWeather.DAL.Repos
         {
             UserEntity? user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
             AddNewTrackedLocation(user, locationName);
+        }
+
+
+
+        private async Task AddNewTrackedLocationAsync(UserEntity? existingUser, string locationName, CancellationToken cancellationToken)
+        {
+            if (existingUser != null)
+            {
+                // _dbContext.Entry(existingUser).Reload();
+                _dbContext.Entry(existingUser);
+                var field = new UserTrackedWeatherFieldsEntity()
+                {
+                    Location = locationName,
+                    UserId = existingUser.Id,
+                    User = existingUser
+                };
+                existingUser.TrackedWeatherFields.Add(field);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        public async Task AddNewTrackedLocationAsync(Guid userId, string locationName, CancellationToken cancellationToken)
+        {
+            UserEntity? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+            await AddNewTrackedLocationAsync(user, locationName, cancellationToken);
+        }
+
+        public async Task AddNewTrackedLocationAsync(string username, string locationName, CancellationToken cancellationToken)
+        {
+            UserEntity? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken: cancellationToken);
+            await AddNewTrackedLocationAsync(user, locationName, cancellationToken);
         }
 
         #endregion
@@ -236,6 +357,30 @@ namespace DerpeWeather.DAL.Repos
         }
 
 
+
+        private async Task DeleteUserAsync(UserEntity? userEntity, CancellationToken cancellationToken)
+        {
+            if (userEntity != null)
+            {
+                _dbContext.Users.Remove(userEntity);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        public async Task DeleteUserAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            UserEntity? userToDelete = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+            await DeleteUserAsync(userToDelete, cancellationToken);
+        }
+
+        public async Task DeleteUserAsync(string username, CancellationToken cancellationToken)
+        {
+            UserEntity? userToDelete = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken: cancellationToken);
+            await DeleteUserAsync(userToDelete, cancellationToken);
+        }
+
+
+
         public void DeleteTrackedField(Guid userId, string locationName)
         {
             UserEntity? user = _dbContext.Users.Where(i => i.Id == userId).FirstOrDefault();
@@ -250,6 +395,24 @@ namespace DerpeWeather.DAL.Repos
                 {
                     user.TrackedWeatherFields.Remove(trackedField);
                     _dbContext.SaveChanges();
+                }
+            }
+        }
+
+
+
+        public async Task DeleteTrackedFieldAsync(Guid userId, string locationName, CancellationToken cancellationToken)
+        {
+            UserEntity? user = await _dbContext.Users.Where(i => i.Id == userId).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+            if (user != null)
+            {
+                var trackedField = user.TrackedWeatherFields
+                    .Where(n => n.Location == locationName)
+                    .FirstOrDefault();
+                if (trackedField != null)
+                {
+                    user.TrackedWeatherFields.Remove(trackedField);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
             }
         }
@@ -283,30 +446,6 @@ namespace DerpeWeather.DAL.Repos
             return userDTO;
         }
 
-        #endregion
-
-
-
-        #region Dispose
-        /*
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    _dbContext.Dispose();
-                }
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-        */
         #endregion
     }
 }

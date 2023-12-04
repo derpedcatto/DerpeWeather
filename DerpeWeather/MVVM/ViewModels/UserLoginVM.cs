@@ -11,6 +11,8 @@ namespace DerpeWeather.ViewModels
 {
     public partial class UserLoginVM : ObservableObject, IDisposable
     {
+        #region Variables
+
         private readonly IHashService _hashService;
         private readonly IMessenger _messenger;
         private readonly IUserRepo _userRepo;
@@ -18,13 +20,14 @@ namespace DerpeWeather.ViewModels
 
         [ObservableProperty]
         private bool isLoginSuccessful;
-        public IAsyncRelayCommand<object> Login { get; }
 
         [ObservableProperty]
         private string _Username;
         [ObservableProperty]
         private string _AvatarPath;
         private bool disposedValue;
+
+        #endregion
 
 
 
@@ -43,8 +46,6 @@ namespace DerpeWeather.ViewModels
             _userInputValidator = userInputValidator;
 
             _messenger.Register<UserLoginDTOMsg>(this, OnUserLoginDTOReceived);
-
-            Login = new AsyncRelayCommand<object>(LoginBtnClickAsync);
         }
 
 
@@ -54,10 +55,13 @@ namespace DerpeWeather.ViewModels
         /// </summary>
         /// <param name="o"><see cref="IPasswordContainer"/> instance.</param>
         [RelayCommand]
-        private async Task LoginBtnClickAsync(object o)
+        private void LoginBtnClick(object o)
         {
             using SecureString userPassword = (o as IPasswordContainer)?.Password!;
-            IsLoginSuccessful = IsPasswordValid(userPassword);
+            if (IsPasswordValid(userPassword))
+            {
+                _messenger.Send(new LoginSuccessMsg());
+            }
         }
 
         /// <summary>

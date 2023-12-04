@@ -5,7 +5,6 @@ using DerpeWeather.MVVM.ViewModels;
 using DerpeWeather.MVVM.Views;
 using DerpeWeather.Utilities.Helpers.Hash;
 using DerpeWeather.Utilities.Helpers.UserData;
-using DerpeWeather.Utilities.Helpers.View;
 using DerpeWeather.Utilities.Helpers.WeatherApi;
 using DerpeWeather.Utilities.Interfaces;
 using DerpeWeather.ViewModels;
@@ -46,7 +45,7 @@ namespace DerpeWeather
 
         public App()
         {
-            SQLConnectionString = @"Data Source=(localdb)\mssqllocaldb;Initial Catalog=DerpeWeatherApp;Integrated Security=True"; // ;Pooling=False;Encrypt=True;Trust Server Certificate=True
+            SQLConnectionString = @"Data Source=(localdb)\mssqllocaldb;Initial Catalog=DerpeWeatherApp;Integrated Security=True;MultipleActiveResultSets=True;"; // ;Pooling=False;Encrypt=True;Trust Server Certificate=True
             WeatherAPIKey = "FYUGK5XRT77PFQ2WPZ5EASF8X";
             WeatherAPIBaseUri = @$"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/";
 
@@ -84,7 +83,6 @@ namespace DerpeWeather
             services.AddSingleton<IUserDirHelper, UserDirHelper>();
             services.AddSingleton<ISystemPreferenceFetcher, SystemPreferenceFetcherWindows>();
             services.AddSingleton<IAvatarImageManager, AvatarImageManager>();
-            services.AddSingleton<IWindowService, WindowService>();
             
             services.AddTransient<ChooseUserVM>();
             services.AddTransient<UserLoginVM>();
@@ -93,17 +91,17 @@ namespace DerpeWeather
             services.AddTransient<UserPreferencesVM>();
             services.AddTransient<AddLocationVM>();
 
-            services.AddTransient<ChooseUserWindow>(s => 
+            services.AddTransient<ChooseUserWindow>(s =>
                 new ChooseUserWindow(s.GetRequiredService<ChooseUserVM>(), s.GetRequiredService<IMessenger>())
             );
-            services.AddTransient<UserRegistrationWindow>(s => 
-                new UserRegistrationWindow(s.GetRequiredService<UserRegistrationVM>())
+            services.AddTransient<UserRegistrationWindow>(s =>
+                new UserRegistrationWindow(s.GetRequiredService<UserRegistrationVM>(), s.GetRequiredService<IMessenger>())
             );
-            services.AddTransient<UserLoginWindow>(s => 
-                new UserLoginWindow(s.GetRequiredService<UserLoginVM>())
+            services.AddTransient<UserLoginWindow>(s =>
+                new UserLoginWindow(s.GetRequiredService<UserLoginVM>(), s.GetRequiredService<IMessenger>())
             );
             services.AddTransient<MainWindow>(s =>
-                new MainWindow(s.GetRequiredService<MainWindowVM>(), s.GetRequiredService<IMessenger>(), s.GetRequiredService<ChooseUserWindow>())
+                new MainWindow(s.GetRequiredService<MainWindowVM>(), s.GetRequiredService<IMessenger>())
             );
             services.AddTransient<UserPreferencesWindow>(s =>
                 new UserPreferencesWindow(s.GetRequiredService<UserPreferencesVM>())
@@ -111,6 +109,7 @@ namespace DerpeWeather
             services.AddTransient<AddLocationWindow>(s =>
                 new AddLocationWindow(s.GetRequiredService<AddLocationVM>(), s.GetRequiredService<IMessenger>())
             );
+
 
             return services.BuildServiceProvider();
         }

@@ -1,30 +1,38 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DerpeWeather.DAL.DTO;
 using DerpeWeather.Utilities.Interfaces;
+using DerpeWeather.Utilities.Messages;
+using System;
 using System.IO;
 using System.Security;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DerpeWeather.ViewModels
 {
-    public partial class UserRegistrationVM : ObservableObject
+    public partial class UserRegistrationVM : ObservableObject, IDisposable
     {
+        #region Variables 
+
+        private readonly CancellationTokenSource _cts;
+
         private readonly IHashService _hashService;
         private readonly IUserRepo _userRepo;
         private readonly IUserInputValidator _userInputValidator;
         private readonly IAvatarImageManager _avatarImageManager;
         private readonly ISystemPreferenceFetcher _systemPreferenceFetcher;
-
-        [ObservableProperty]
-        private bool isRegistrationSuccessful;
-        public IAsyncRelayCommand<object> Register { get; }
+        private readonly IMessenger _messenger;
 
         [ObservableProperty]
         private string? _Username;
         [ObservableProperty]
         private string? _UserAttachmentBtnString;
         private string? _userAvatarPath;
+        private bool disposedValue;
+
+        #endregion
 
 
 
@@ -36,19 +44,21 @@ namespace DerpeWeather.ViewModels
             IHashService hashService,
             IUserInputValidator userInputValidator,
             IAvatarImageManager avatarImageManager,
-            ISystemPreferenceFetcher systemPreferenceFetcher)
+            ISystemPreferenceFetcher systemPreferenceFetcher,
+            IMessenger messenger)
         {
+            _cts = new();
+
             _userRepo = userRepo;
             _hashService = hashService;
             _userInputValidator = userInputValidator;
             _avatarImageManager = avatarImageManager;
             _systemPreferenceFetcher = systemPreferenceFetcher;
+            _messenger = messenger;
 
             _userAvatarPath = string.Empty;
 
             _UserAttachmentBtnString = "Attachment (optional)";
-
-            Register = new AsyncRelayCommand<object>(RegisterBtnClickAsync);
         }
 
 
@@ -102,7 +112,7 @@ namespace DerpeWeather.ViewModels
                     Password = password
                 };
 
-                await _userRepo.AddNewUserAsync(model, _systemPreferenceFetcher);
+                await _userRepo.AddNewUserAsync(model, _systemPreferenceFetcher, _cts.Token);
                 var userId = _userRepo.GetUser(Username)!.Id;
 
                 if (_userAvatarPath != string.Empty)
@@ -114,7 +124,7 @@ namespace DerpeWeather.ViewModels
                     _avatarImageManager.SetDefaultAvatar(userId);
                 }
 
-                IsRegistrationSuccessful = true;
+                _messenger.Send(new RegistrationSuccessMsg());
             }
         }
 
@@ -172,5 +182,31 @@ namespace DerpeWeather.ViewModels
 
             return true;
         }
+
+
+
+        #region Dispose
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    _messenger.UnregisterAll(this);
+                    _cts.Cancel();
+                    _cts.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }
