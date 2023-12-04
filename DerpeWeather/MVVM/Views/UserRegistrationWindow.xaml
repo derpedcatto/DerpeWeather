@@ -1,0 +1,88 @@
+﻿<Window
+    x:Class="DerpeWeather.Views.UserRegistrationWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:System="clr-namespace:System;assembly=mscorlib"
+    xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:DerpeWeather.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Registration"
+    Width="300"
+    Height="400"
+    ResizeMode="CanMinimize"
+    mc:Ignorable="d">
+    <Window.Style>
+        <Style
+            BasedOn="{StaticResource {x:Type Window}}"
+            TargetType="Window" />
+    </Window.Style>
+    <Window.Resources>
+        <System:Double x:Key="FontSizeLabel">26</System:Double>
+        <System:Double x:Key="FontSizeBox">16</System:Double>
+        <System:Double x:Key="FontSizeButtonRegister">20</System:Double>
+
+        <Style
+            BasedOn="{StaticResource {x:Type TextBlock}}"
+            TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{StaticResource FontSizeLabel}" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding" Value="0,0,0,5" />
+        </Style>
+    </Window.Resources>
+
+    <Grid
+        Margin="20"
+        ShowGridLines="False">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1.6*" />
+            <RowDefinition Height="0.5*" />
+        </Grid.RowDefinitions>
+
+        <!--  Username  -->
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Username" />
+            <TextBox
+                adonisExtensions:ValidationExtension.IsErrorMessageVisibleOnFocus="True"
+                adonisExtensions:WatermarkExtension.Watermark="Enter username"
+                FontSize="{StaticResource FontSizeBox}"
+                Text="{Binding Username}" />
+        </StackPanel>
+
+        <!--  Password  -->
+        <StackPanel Grid.Row="1">
+            <TextBlock Text="Password" />
+            <PasswordBox
+                x:Name="UserPasswordBox"
+                adonisExtensions:ValidationExtension.IsErrorMessageVisibleOnFocus="True"
+                adonisExtensions:WatermarkExtension.Watermark="Enter password"
+                FontSize="{StaticResource FontSizeBox}" />
+        </StackPanel>
+
+        <!--  Attachment  -->
+        <StackPanel Grid.Row="2">
+            <TextBlock Text="Avatar Image" />
+            <Button
+                MaxHeight="30"
+                Command="{Binding AddAttachmentBtnClickCommand}"
+                Content="{Binding UserAttachmentBtnString}"
+                FontSize="{StaticResource FontSizeBox}" />
+        </StackPanel>
+
+        <!--  Register  -->
+        <StackPanel Grid.Row="3">
+            <Button
+                Command="{Binding RegisterBtnClickCommand}"
+                CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
+                Content="Register"
+                FontSize="{StaticResource FontSizeButtonRegister}"
+                FontWeight="DemiBold" />
+        </StackPanel>
+    </Grid>
+
+</Window>

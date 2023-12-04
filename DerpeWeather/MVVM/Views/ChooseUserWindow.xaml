@@ -1,0 +1,123 @@
+﻿<Window
+    x:Class="DerpeWeather.Views.ChooseUserWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:DerpeWeather.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Derpe Weather Login"
+    Width="450"
+    Height="500"
+    Closed="Window_Closed"
+    FontSize="16"
+    ResizeMode="CanMinimize"
+    mc:Ignorable="d">
+    <Window.Style>
+        <Style
+            BasedOn="{StaticResource {x:Type Window}}"
+            TargetType="Window" />
+    </Window.Style>
+
+    <Grid Margin="10,0,10,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="135" />
+        </Grid.RowDefinitions>
+
+        <!--  Choose User Label  -->
+        <WrapPanel
+            Grid.Row="0"
+            Width="Auto"
+            Height="Auto"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+            <TextBlock
+                FontSize="36"
+                FontWeight="DemiBold"
+                Text="Choose User" />
+        </WrapPanel>
+
+        <!--  User List  -->
+        <Border
+            Grid.Row="1"
+            BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
+            BorderThickness="1">
+            <ListView
+                ItemsSource="{Binding UsersList}"
+                SelectedItem="{Binding SelectedUser, Mode=TwoWay}">
+                <ListView.ItemContainerStyle>
+                    <Style
+                        BasedOn="{StaticResource {x:Type ListViewItem}}"
+                        TargetType="ListViewItem">
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+
+                <ListView.View>
+                    <GridView>
+                        <GridView.ColumnHeaderContainerStyle>
+                            <Style TargetType="GridViewColumnHeader">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </Style>
+                        </GridView.ColumnHeaderContainerStyle>
+
+                        <GridViewColumn
+                            Width="75"
+                            Header="Avatar">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image
+                                        Width="Auto"
+                                        Height="Auto"
+                                        Source="{Binding AvatarPath}"
+                                        Stretch="UniformToFill" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn
+                            Width="315"
+                            Header="Username">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="20"
+                                        LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                        Text="{Binding Username}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Border>
+
+        <!--  Buttons  -->
+        <StackPanel
+            Grid.Row="2"
+            Width="200"
+            VerticalAlignment="Center"
+            Orientation="Vertical">
+            <Button
+                Margin="0,0,0,10"
+                Command="{Binding LoginClickCommand}"
+                Content="Login"
+                FontWeight="DemiBold" />
+            <Button
+                Margin="0,0,0,10"
+                Command="{Binding RegisterNewUserClickCommand}"
+                Content="Add New User"
+                FontWeight="DemiBold" />
+            <Button
+                Command="{Binding DeleteSelectedUserClickCommand}"
+                Content="Delete Selected User"
+                FontWeight="DemiBold" />
+        </StackPanel>
+    </Grid>
+</Window>
