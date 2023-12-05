@@ -6,8 +6,10 @@
     xmlns:local="clr-namespace:DerpeWeather.MVVM.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="User Preferences"
-    Width="700"
-    Height="450"
+    Width="400"
+    Height="500"
+    MinWidth="400"
+    MinHeight="500"
     FontSize="16"
     mc:Ignorable="d">
     <Window.Style>
@@ -16,16 +18,16 @@
             TargetType="Window" />
     </Window.Style>
 
-    <Grid Margin="10">
+    <Grid Margin="20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="1.4*" />
             <RowDefinition />
             <RowDefinition />
             <RowDefinition />
             <RowDefinition Height="0.2*" />
-            <RowDefinition Height="0.3*" />
+            <RowDefinition Height="40" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
@@ -47,8 +49,7 @@
         <!--  User Account Settings  -->
         <UniformGrid
             Grid.Row="1"
-            Grid.RowSpan="2"
-            Rows="4">
+            Rows="2">
             <Button
                 Margin="5"
                 Content="Change Username" />
@@ -63,9 +64,20 @@
                 Content="Delete User" />
         </UniformGrid>
 
+        <!--  Theme / Units  -->
+        <StackPanel
+            Grid.Row="2"
+            Grid.RowSpan="2"
+            VerticalAlignment="Center">
+            <TextBlock Text="App Theme" />
+            <ComboBox Margin="0,5,0,15" />
+            <TextBlock Text="Temperature Units" />
+            <ComboBox Margin="0,5,0,15" />
+        </StackPanel>
+
         <Button
-            Grid.Row="4"
+            Grid.Row="5"
             Grid.ColumnSpan="2"
-            Content="Save Preferences" />
+            Content="Exit" />
     </Grid>
 </Window>

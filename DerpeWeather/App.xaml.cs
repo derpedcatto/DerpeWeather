@@ -5,6 +5,7 @@ using DerpeWeather.MVVM.ViewModels;
 using DerpeWeather.MVVM.Views;
 using DerpeWeather.Utilities.Helpers.Hash;
 using DerpeWeather.Utilities.Helpers.UserData;
+using DerpeWeather.Utilities.Helpers.View;
 using DerpeWeather.Utilities.Helpers.WeatherApi;
 using DerpeWeather.Utilities.Interfaces;
 using DerpeWeather.ViewModels;
@@ -25,6 +26,7 @@ namespace DerpeWeather
     public partial class App : Application
     {
         #region Variables
+
         public new static App Current => (App)Application.Current;
         public IServiceProvider Services { get; }
 
@@ -39,6 +41,7 @@ namespace DerpeWeather
         public static string UserAvatarFileName { get; private set; }
 
         public static Bitmap DefaultUserAvatar { get; private set; }
+
         #endregion
 
 
@@ -83,7 +86,8 @@ namespace DerpeWeather
             services.AddSingleton<IUserDirHelper, UserDirHelper>();
             services.AddSingleton<ISystemPreferenceFetcher, SystemPreferenceFetcherWindows>();
             services.AddSingleton<IAvatarImageManager, AvatarImageManager>();
-            
+            services.AddSingleton<IWindowFactory, WindowFactory>();
+
             services.AddTransient<ChooseUserVM>();
             services.AddTransient<UserLoginVM>();
             services.AddTransient<UserRegistrationVM>();
@@ -91,6 +95,14 @@ namespace DerpeWeather
             services.AddTransient<UserPreferencesVM>();
             services.AddTransient<AddLocationVM>();
 
+            services.AddTransient<ChooseUserWindow>();
+            services.AddTransient<UserRegistrationWindow>();
+            services.AddTransient<UserLoginWindow>();
+            services.AddTransient<MainWindow>();
+            services.AddTransient<UserPreferencesWindow>();
+            services.AddTransient<AddLocationWindow>();
+
+            /*
             services.AddTransient<ChooseUserWindow>(s =>
                 new ChooseUserWindow(s.GetRequiredService<ChooseUserVM>(), s.GetRequiredService<IMessenger>())
             );
@@ -109,6 +121,7 @@ namespace DerpeWeather
             services.AddTransient<AddLocationWindow>(s =>
                 new AddLocationWindow(s.GetRequiredService<AddLocationVM>(), s.GetRequiredService<IMessenger>())
             );
+            */
 
 
             return services.BuildServiceProvider();
@@ -122,9 +135,9 @@ namespace DerpeWeather
 
             if (CreateAppDataDir())
             {
-                // ChooseUserWindow startupWindow = new();
-                var startupWindow = App.Current.Services.GetService<ChooseUserWindow>();
-                startupWindow!.Show();
+                var windowFactory = App.Current.Services.GetRequiredService<IWindowFactory>();
+                var startupWindow = windowFactory.CreateWindow<ChooseUserWindow>();
+                startupWindow.Show();
             }
         }
 
@@ -133,7 +146,7 @@ namespace DerpeWeather
         /// <summary>
         /// Creates folders for saving user data if they are not created
         /// </summary>
-        private bool CreateAppDataDir()
+        private static bool CreateAppDataDir()
         {
             try
             {
@@ -146,7 +159,12 @@ namespace DerpeWeather
             }
             catch (IOException ex)
             {
-                AdonisUI.Controls.MessageBox.Show(ex.Message, "OnStartup Error - Can't create 'AppData/Local' folder!", AdonisUI.Controls.MessageBoxButton.OK, AdonisUI.Controls.MessageBoxImage.Error);
+                AdonisUI.Controls.MessageBox.Show(
+                    ex.Message,
+                    "OnStartup Error - Can't create 'AppData/Local' folder!",
+                    AdonisUI.Controls.MessageBoxButton.OK,
+                    AdonisUI.Controls.MessageBoxImage.Error
+                );
                 return false;
             }
         }

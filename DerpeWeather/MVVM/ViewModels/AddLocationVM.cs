@@ -32,6 +32,7 @@ namespace DerpeWeather.MVVM.ViewModels
         [RelayCommand]
         private void SaveLocationBtnClick()
         {
+            LocationName = LocationName.Trim();
             string errorMsg = _userInputValidator.CheckLocationName(_userId, LocationName);
             if (errorMsg == string.Empty)
             {

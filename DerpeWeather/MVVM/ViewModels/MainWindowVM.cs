@@ -26,6 +26,7 @@ namespace DerpeWeather.MVVM.ViewModels
         private readonly IUserRepo _userRepo;
         private readonly IMessenger _messenger;
         private readonly IWeatherApiClient _weatherApiClient;
+        private readonly IWindowFactory _windowFactory;
         private Guid _userId;
 
         /// <summary>
@@ -51,13 +52,15 @@ namespace DerpeWeather.MVVM.ViewModels
         public MainWindowVM(
             IUserRepo userRepo,
             IMessenger messenger,
-            IWeatherApiClient weatherApiClient)
+            IWeatherApiClient weatherApiClient,
+            IWindowFactory windowFactory)
         {
             _cts = new();
 
             _userRepo = userRepo;
             _messenger = messenger;
             _weatherApiClient = weatherApiClient;
+            _windowFactory = windowFactory;
 
             _messenger.Register<UserLoginIdMsg>(this, OnUserLoginIdMsgReceived);
             _messenger.Register<NewTrackedWeatherLocationMsg>(this, OnAddNewLocationToListMsgReceived);
@@ -72,7 +75,7 @@ namespace DerpeWeather.MVVM.ViewModels
         [RelayCommand]
         private void UserLogoutClick()
         {
-            var chooseUserWindow = App.Current.Services.GetRequiredService<ChooseUserWindow>();
+            var chooseUserWindow = _windowFactory.CreateWindow<ChooseUserWindow>();
             chooseUserWindow.Show();
 
             _messenger.Send(new UserLogoutMsg());
@@ -81,10 +84,8 @@ namespace DerpeWeather.MVVM.ViewModels
         [RelayCommand]
         private void UserPreferencesClick()
         {
-            /*
-            var userPreferencesWindow = App.Current.Services.GetService<UserPreferencesWindow>();
+            var userPreferencesWindow = _windowFactory.CreateWindow<UserPreferencesWindow>();
             userPreferencesWindow!.ShowDialog();
-            */
         }
 
         [RelayCommand]
@@ -131,7 +132,7 @@ namespace DerpeWeather.MVVM.ViewModels
         [RelayCommand]
         private void AddLocationClick()
         {
-            var addLocationWindow = App.Current.Services.GetService<AddLocationWindow>();
+            var addLocationWindow = _windowFactory.CreateWindow<AddLocationWindow>();
             _messenger.Send<AddLocationUserIdMsg>(new(_userId));
             addLocationWindow!.ShowDialog();
 

@@ -24,6 +24,7 @@ namespace DerpeWeather.ViewModels
         private readonly IMessenger _messenger;
         private readonly IAvatarImageManager _avatarImageManager;
         private readonly IUserRepo _userRepo;
+        private readonly IWindowFactory _windowFactory;
 
         /// <summary>
         /// User list from DB to display in view.
@@ -51,13 +52,15 @@ namespace DerpeWeather.ViewModels
         public ChooseUserVM(
             IUserRepo userRepo,
             IMessenger messenger,
-            IAvatarImageManager avatarImageManager)
+            IAvatarImageManager avatarImageManager,
+            IWindowFactory windowFactory)
         {
             _cts = new();
 
             _userRepo = userRepo;
             _messenger = messenger;
             _avatarImageManager = avatarImageManager;
+            _windowFactory = windowFactory;
 
             UsersList = new();
             UpdateUsersList();
@@ -95,7 +98,7 @@ namespace DerpeWeather.ViewModels
                     AvatarPath = SelectedUser.AvatarPath
                 };
 
-                var userLoginWindow = App.Current.Services.GetRequiredService<UserLoginWindow>();
+                var userLoginWindow = _windowFactory.CreateWindow<UserLoginWindow>();
                 _messenger.Send(new UserLoginDTOMsg(userLoginDTO));
 
                 userLoginWindow.ShowDialog();
@@ -104,7 +107,7 @@ namespace DerpeWeather.ViewModels
                     var user = await _userRepo.GetUserAsync(SelectedUser.Username, _cts.Token);
                     var userId = user.Id;
 
-                    var mainWindow = App.Current.Services.GetRequiredService<MainWindow>();
+                    var mainWindow = _windowFactory.CreateWindow<MainWindow>();
                     mainWindow.Show();
 
                     _messenger.Send(new UserLoginIdMsg(userId));
@@ -135,7 +138,7 @@ namespace DerpeWeather.ViewModels
         [RelayCommand]
         private void RegisterNewUserClick()
         {
-            var userRegistrationWindow = App.Current.Services.GetRequiredService<UserRegistrationWindow>();
+            var userRegistrationWindow = _windowFactory.CreateWindow<UserRegistrationWindow>();
             userRegistrationWindow.ShowDialog();
             
             if (userRegistrationWindow.IsRegistrationSuccessful)
@@ -174,7 +177,7 @@ namespace DerpeWeather.ViewModels
                     AvatarPath = SelectedUser.AvatarPath
                 };
 
-                var userLoginWindow = App.Current.Services.GetRequiredService<UserLoginWindow>();
+                var userLoginWindow = _windowFactory.CreateWindow<UserLoginWindow>();
                 _messenger.Send(new UserLoginDTOMsg(userLoginDTO));
 
                 userLoginWindow.ShowDialog();
