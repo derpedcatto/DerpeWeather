@@ -1,17 +1,19 @@
 ﻿using DerpeWeather.Utilities.Interfaces;
 using System;
 using System.IO;
-using System.Linq;
 
 namespace DerpeWeather.Utilities.Helpers.UserData
 {
+    /// <summary>
+    /// Main implementation for <see cref="IUserDirHelper"/>.
+    /// </summary>
     public class UserDirHelper : IUserDirHelper
     {
         public string? GetUserDir(Guid userId)
         {
             try
             {
-                string folderPath = Path.Combine(App.AppDataRootFolderPath, App.UserDataFolderName, userId.ToString());
+                string folderPath = Path.Combine(App.AppDataRootFolderPath, App.RootUserDataFolderName, userId.ToString());
                 Directory.CreateDirectory(folderPath);
                 return folderPath;
             }

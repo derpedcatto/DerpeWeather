@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace DerpeWeather.MVVM.Models
 {
+    /// <summary>
+    /// Model that gets returned from VisualCrossing Weather API.
+    /// </summary>
     public class WeatherApiResponse
     {
         [JsonPropertyName("queryCost")]
@@ -39,6 +42,9 @@ namespace DerpeWeather.MVVM.Models
         public WeatherApiCurrentConditions CurrentConditions { get; set; }
     }
 
+    /// <summary>
+    /// Model that gets returned from VisualCrossing Weather API.
+    /// </summary>
     public class WeatherApiCurrentConditions
     {
         [JsonPropertyName("datetime")]
@@ -132,6 +138,9 @@ namespace DerpeWeather.MVVM.Models
         public double? Moonphase { get; set; }
     }
 
+    /// <summary>
+    /// Model that gets returned from VisualCrossing Weather API.
+    /// </summary>
     public class WeatherApiDay
     {
         [JsonPropertyName("datetime")]
@@ -246,6 +255,9 @@ namespace DerpeWeather.MVVM.Models
         public List<WeatherApiHour> Hours { get; set; }
     }
 
+    /// <summary>
+    /// Model that gets returned from VisualCrossing Weather API.
+    /// </summary>
     public class WeatherApiHour
     {
         [JsonPropertyName("datetime")]

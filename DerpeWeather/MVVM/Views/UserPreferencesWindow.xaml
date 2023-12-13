@@ -3,29 +3,52 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:DerpeWeather.Utilities.Enums"
     xmlns:local="clr-namespace:DerpeWeather.MVVM.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:windows="clr-namespace:System.Windows;assembly=PresentationFramework"
     Title="User Preferences"
     Width="400"
     Height="500"
-    MinWidth="400"
-    MinHeight="500"
     FontSize="16"
+    ResizeMode="CanMinimize"
     mc:Ignorable="d">
     <Window.Style>
         <Style
             BasedOn="{StaticResource {x:Type Window}}"
             TargetType="Window" />
     </Window.Style>
+    <Window.Resources>
+        <ObjectDataProvider
+            x:Key="UserPreferenceThemeValues"
+            MethodName="GetValues"
+            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:UserPreferenceTheme" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider
+            x:Key="UserPreferenceUnitsValues"
+            MethodName="GetValues"
+            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:UserPreferenceUnits" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </Window.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="1.4*" />
-            <RowDefinition />
-            <RowDefinition />
-            <RowDefinition />
+            <RowDefinition Height="1*" />
             <RowDefinition Height="0.2*" />
-            <RowDefinition Height="40" />
+            <RowDefinition Height="1.5*" />
+            <RowDefinition Height="0.2*" />
+            <RowDefinition Height="0.7*" />
+            <RowDefinition Height="0.7*" />
+            <RowDefinition Height="0" />
+            <RowDefinition Height="0" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -36,48 +59,68 @@
             Grid.Row="0"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
-            Orientation="Vertical">
+            Orientation="Horizontal">
             <Image
                 Height="Auto"
-                Margin="0,0,0,10"
+                Margin="0,0,10,0"
                 VerticalAlignment="Center"
-                Source="{Binding AvatarPath}" />
+                Source="{Binding AvatarImage}" />
             <TextBlock
                 VerticalAlignment="Center"
+                FontSize="22"
                 Text="{Binding Username}" />
         </StackPanel>
+
         <!--  User Account Settings  -->
         <UniformGrid
-            Grid.Row="1"
-            Rows="2">
+            Grid.Row="2"
+            Rows="3">
             <Button
-                Margin="5"
-                Content="Change Username" />
+                Margin="0,5,0,5"
+                Command="{Binding ChangeUsernameClickCommand}"
+                Content="Change Username"
+                IsEnabled="{Binding ButtonsEnabled}" />
             <Button
-                Margin="5"
-                Content="Change Password" />
+                Margin="0,5,0,5"
+                Command="{Binding ChangePasswordClickCommand}"
+                Content="Change Password"
+                IsEnabled="{Binding ButtonsEnabled}" />
             <Button
-                Margin="5"
-                Content="Change Avatar" />
-            <Button
-                Margin="5"
-                Content="Delete User" />
+                Margin="0,5,0,5"
+                Command="{Binding ChangeAvatarClickCommand}"
+                Content="Change Avatar"
+                IsEnabled="{Binding ButtonsEnabled}" />
         </UniformGrid>
 
         <!--  Theme / Units  -->
         <StackPanel
-            Grid.Row="2"
+            Grid.Row="4"
             Grid.RowSpan="2"
             VerticalAlignment="Center">
-            <TextBlock Text="App Theme" />
-            <ComboBox Margin="0,5,0,15" />
-            <TextBlock Text="Temperature Units" />
-            <ComboBox Margin="0,5,0,15" />
+
+            <TextBlock
+                FontWeight="DemiBold"
+                Text="App Theme" />
+            <ComboBox
+                Margin="0,5,0,15"
+                IsEnabled="{Binding ButtonsEnabled}"
+                ItemsSource="{Binding Source={StaticResource UserPreferenceThemeValues}}"
+                SelectedItem="{Binding UserTheme}" />
+            <TextBlock
+                FontWeight="DemiBold"
+                Text="Temperature Units" />
+            <ComboBox
+                Margin="0,5,0,15"
+                IsEnabled="{Binding ButtonsEnabled}"
+                ItemsSource="{Binding Source={StaticResource UserPreferenceUnitsValues}}"
+                SelectedItem="{Binding UserUnits}" />
         </StackPanel>
 
+        <!--
         <Button
-            Grid.Row="5"
+            Grid.Row="7"
             Grid.ColumnSpan="2"
             Content="Exit" />
+        -->
     </Grid>
 </Window>

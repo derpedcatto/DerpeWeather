@@ -5,6 +5,9 @@ using System.Security;
 
 namespace DerpeWeather.Utilities.Helpers.UserData
 {
+    /// <summary>
+    /// Main implementation of <see cref="IUserInputValidator"/> interface.
+    /// </summary>
     public class UserInputValidator : IUserInputValidator
     {
         private readonly IUserRepo _userRepo;
@@ -25,6 +28,7 @@ namespace DerpeWeather.Utilities.Helpers.UserData
                 return "Username must not be empty!";
             }
 
+            username = username.Trim();
             if (username.Length < 3 || username.Length > 20)
             {
                 return "Username must be 3-20 characters long.";
@@ -67,9 +71,9 @@ namespace DerpeWeather.Utilities.Helpers.UserData
             return string.Empty;
         }
 
-        public string CheckLocationName(Guid userId, string location)
+        public string CheckLocationName(Guid userId, string locationName, string resolvedLocation)
         {
-            if (string.IsNullOrEmpty(location))
+            if (string.IsNullOrEmpty(locationName))
             {
                 return "Location name is empty!";
             }
@@ -79,7 +83,7 @@ namespace DerpeWeather.Utilities.Helpers.UserData
             {
                 foreach (var item in user.TrackedWeatherFields)
                 {
-                    if (item.Location == location)
+                    if (string.Equals(item.ResolvedLocation, resolvedLocation, StringComparison.OrdinalIgnoreCase))
                     {
                         return "Location is already tracked.";
                     }

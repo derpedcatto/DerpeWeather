@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DerpeWeather.DAL.EF
 {
+    /// <summary>
+    /// Entity Framework User entity.
+    /// </summary>
     public class UserEntity
     {
         [Key]

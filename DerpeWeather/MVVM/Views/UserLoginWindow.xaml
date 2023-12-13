@@ -53,10 +53,10 @@
                 Height="Auto"
                 Margin="0,0,10,0"
                 VerticalAlignment="Center"
-                Source="{Binding AvatarPath}" />
+                Source="{Binding SelectedUser.AvatarImage}" />
             <TextBlock
                 VerticalAlignment="Center"
-                Text="{Binding Username}" />
+                Text="{Binding SelectedUser.Username}" />
         </StackPanel>
 
         <!--  Password Box  -->

@@ -13,7 +13,7 @@ namespace DerpeWeather.Utilities.Interfaces
         UserPreferenceUnits GetUnitsPreference();
 
         /// <summary>
-        /// Fetches system preference of theme (ex: Light, Dark, System, ...).
+        /// Fetches system preference of system theme (ex: Light, Dark, System, ...).
         /// </summary>
         UserPreferenceTheme GetThemePreference();
     }

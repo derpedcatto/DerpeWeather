@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace DerpeWeather.MVVM.Models
 {
+    /// <summary>
+    /// Model and represents User database model (with some changes) 
+    /// and also that gets returned from <see cref="IUserRepo"/> .
+    /// </summary>
     public class User
     {
         public Guid Id { get; set; }

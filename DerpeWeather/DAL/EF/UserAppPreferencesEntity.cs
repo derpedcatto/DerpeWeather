@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DerpeWeather.DAL.EF
 {
+    /// <summary>
+    /// Entity Framework UserAppPreferences entity.
+    /// </summary>
     public class UserAppPreferencesEntity
     {
         [Key]

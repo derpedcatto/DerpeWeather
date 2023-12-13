@@ -2,10 +2,12 @@
     x:Class="DerpeWeather.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Interactivity="clr-namespace:Microsoft.VisualBasic;assembly=Microsoft.VisualBasic"
     xmlns:System="clr-namespace:System;assembly=mscorlib"
     xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:DerpeWeather"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Derpe Weather App"
@@ -33,106 +35,124 @@
         </Grid.ColumnDefinitions>
 
         <!--  Weather List  -->
-        <Border
-            Grid.Row="0"
-            Margin="0,0,0,10"
-            BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
-            BorderThickness="1">
-            <ListView
-                x:Name="WeatherListView"
-                ItemsSource="{Binding WeatherList}"
-                SelectedItem="{Binding SelectedWeatherItem, Mode=TwoWay}">
-                <ListView.ItemContainerStyle>
-                    <Style
-                        BasedOn="{StaticResource {x:Type ListViewItem}}"
-                        TargetType="ListViewItem">
-                        <Setter Property="VerticalContentAlignment" Value="Center" />
-                    </Style>
-                </ListView.ItemContainerStyle>
+        <Grid Grid.Row="0">
+            <Border
+                Margin="0,0,0,10"
+                BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
+                BorderThickness="1">
+                <ListView
+                    x:Name="WeatherListView"
+                    ItemsSource="{Binding WeatherList}"
+                    SelectedItem="{Binding SelectedWeatherItem, Mode=TwoWay}">
+                    <ListView.ItemContainerStyle>
+                        <Style
+                            BasedOn="{StaticResource {x:Type ListViewItem}}"
+                            TargetType="ListViewItem">
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
 
-                <ListView.View>
-                    <GridView>
-                        <GridView.ColumnHeaderContainerStyle>
-                            <Style
-                                BasedOn="{StaticResource {x:Type GridViewColumnHeader}}"
-                                TargetType="{x:Type GridViewColumnHeader}">
-                                <Setter Property="IsHitTestVisible" Value="False" />
-                            </Style>
-                        </GridView.ColumnHeaderContainerStyle>
+                    <ListView.View>
+                        <GridView>
+                            <GridView.ColumnHeaderContainerStyle>
+                                <Style
+                                    BasedOn="{StaticResource {x:Type GridViewColumnHeader}}"
+                                    TargetType="{x:Type GridViewColumnHeader}" />
+                            </GridView.ColumnHeaderContainerStyle>
 
-                        <GridViewColumn
-                            Width="{x:Static System:Double.NaN}"
-                            Header="Location">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
-                                        Text="{Binding Location}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
+                            <GridViewColumn Width="{x:Static System:Double.NaN}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Location">
+                                        <i:Interaction.Triggers>
+                                            <i:EventTrigger EventName="Click">
+                                                <i:InvokeCommandAction
+                                                    Command="{Binding SortCommand}"
+                                                    CommandParameter="Location" />
+                                            </i:EventTrigger>
+                                        </i:Interaction.Triggers>
+                                        Location
+                                    </GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                            Text="{Binding Location}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
 
-                        <GridViewColumn
-                            Width="{x:Static System:Double.NaN}"
-                            Header="Timezone">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
-                                        Text="{Binding Timezone}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
+                            <GridViewColumn
+                                Width="{x:Static System:Double.NaN}"
+                                Header="Timezone">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                            Text="{Binding Timezone}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
 
-                        <GridViewColumn
-                            Width="{x:Static System:Double.NaN}"
-                            Header="Temp">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
-                                        Text="{Binding Temperature}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
+                            <GridViewColumn
+                                Width="{x:Static System:Double.NaN}"
+                                Header="Temp">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                            Text="{Binding Temperature}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
 
-                        <GridViewColumn
-                            Width="{x:Static System:Double.NaN}"
-                            Header="Condition">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
-                                        Text="{Binding Condition}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
+                            <GridViewColumn
+                                Width="{x:Static System:Double.NaN}"
+                                Header="Condition">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                            Text="{Binding Condition}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
 
-                        <GridViewColumn
-                            Width="{x:Static System:Double.NaN}"
-                            Header="Description">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
-                                        Text="{Binding Description}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </Border>
+                            <GridViewColumn
+                                Width="{x:Static System:Double.NaN}"
+                                Header="Description">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            LineHeight="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                            Text="{Binding Description}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Border>
+
+            <Grid Visibility="{Binding LoadingIndicatorVisibility}">
+                <ContentControl
+                    Width="125"
+                    Height="125"
+                    ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingCircle}}"
+                    Focusable="False"
+                    Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+            </Grid>
+        </Grid>
 
         <!--  Buttons  -->
         <Grid Grid.Row="1">
@@ -150,38 +170,51 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
+
             <Button
                 Grid.Row="0"
                 Grid.Column="0"
                 Grid.ColumnSpan="2"
                 Margin="5,0"
-                Command="{Binding RefreshListClickCommand}"
-                Content="Refresh List" />
+                Command="{Binding DetailsClickCommand}"
+                Content="Details"
+                IsEnabled="{Binding ButtonsEnabled}" />
             <Button
                 Grid.Row="0"
                 Grid.Column="2"
                 Grid.ColumnSpan="2"
                 Margin="5,0"
                 Command="{Binding AddLocationClickCommand}"
-                Content="Add Location" />
+                Content="Add Location"
+                IsEnabled="{Binding ButtonsEnabled}" />
             <Button
                 Grid.Row="0"
                 Grid.Column="4"
                 Grid.ColumnSpan="2"
                 Margin="5,0"
                 Command="{Binding DeleteSelectedItemClickCommand}"
-                Content="Remove Selected" />
+                Content="Remove Selected"
+                IsEnabled="{Binding ButtonsEnabled}" />
 
             <Button
                 Grid.Row="2"
-                Grid.Column="1"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Margin="5,0"
+                Command="{Binding RefreshListClickCommand}"
+                Content="Refresh List"
+                IsEnabled="{Binding ButtonsEnabled}" />
+            <Button
+                Grid.Row="2"
+                Grid.Column="2"
                 Grid.ColumnSpan="2"
                 Margin="5,0"
                 Command="{Binding UserPreferencesClickCommand}"
-                Content="Settings" />
+                Content="Settings"
+                IsEnabled="{Binding ButtonsEnabled}" />
             <Button
                 Grid.Row="2"
-                Grid.Column="3"
+                Grid.Column="4"
                 Grid.ColumnSpan="2"
                 Margin="5,0"
                 Command="{Binding UserLogoutClickCommand}"

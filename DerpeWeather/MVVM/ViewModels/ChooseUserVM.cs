@@ -3,44 +3,52 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DerpeWeather.DAL.DTO;
 using DerpeWeather.MVVM.Models;
+using DerpeWeather.MVVM.Views;
 using DerpeWeather.Utilities.Interfaces;
 using DerpeWeather.Utilities.Messages;
 using DerpeWeather.Views;
-using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace DerpeWeather.ViewModels
 {
+    /// <summary>
+    /// ViewModel for <see cref="ChooseUserWindow"/>.
+    /// </summary>
     public partial class ChooseUserVM : ObservableObject, IDisposable
     {
         #region Variables
 
-        private bool disposedValue;
         private readonly CancellationTokenSource _cts;
+        private bool disposedValue;
 
         private readonly IMessenger _messenger;
         private readonly IAvatarImageManager _avatarImageManager;
         private readonly IUserRepo _userRepo;
         private readonly IWindowFactory _windowFactory;
+        private readonly ISystemPreferenceFetcher _systemPreferenceFetcher;
+
+        [ObservableProperty]
+        private Visibility _LoadingIndicatorVisibility;
+
+        [ObservableProperty]
+        private bool _ButtonsEnabled;
 
         /// <summary>
         /// User list from DB to display in view.
         /// </summary>
-        public ObservableCollection<UserLoginListItem> UsersList
-        {
-            get => _usersList;
-            set => SetProperty(ref _usersList, value);
-        }
-        private ObservableCollection<UserLoginListItem> _usersList;
+        [ObservableProperty]
+        public ObservableCollection<UserLoginListItem> _UsersList;
 
         /// <summary>
         /// Selected user in list.
         /// </summary>
         [ObservableProperty]
-        private UserLoginListItem _SelectedUser;
+        private UserLoginListItem? _SelectedUser;
 
         #endregion
 
@@ -53,17 +61,26 @@ namespace DerpeWeather.ViewModels
             IUserRepo userRepo,
             IMessenger messenger,
             IAvatarImageManager avatarImageManager,
-            IWindowFactory windowFactory)
+            IWindowFactory windowFactory,
+            ISystemPreferenceFetcher systemPreferenceFetcher)
         {
             _cts = new();
+
+            LoadingIndicatorVisibility = Visibility.Collapsed;
+            ButtonsEnabled = true;
 
             _userRepo = userRepo;
             _messenger = messenger;
             _avatarImageManager = avatarImageManager;
             _windowFactory = windowFactory;
+            _systemPreferenceFetcher = systemPreferenceFetcher;
 
             UsersList = new();
             UpdateUsersList();
+
+            _messenger.Register<ValidAppJsonSettingsMsg>(this, OnValidAppJsonSettingsMsgReceived);
+
+            App.Current.SwitchColorScheme(_systemPreferenceFetcher.GetThemePreference());
         }
 
 
@@ -71,9 +88,8 @@ namespace DerpeWeather.ViewModels
         #region RelayCommand
 
         /// <summary>
-        /// <para>Logic for clicking 'Login' button.</para>
-        /// <para>On success - sends a message to <see cref="ChooseUserWindow"/> with selected UserID and triggers <see cref="ChooseUserWindow.OnOpenMainWindow(object, OpenMainWindowMsg)"/>. </para>
-        /// <para>On fail - displays a MessageBox.</para>
+        /// <para>On success - sends a <see cref="UserLoginIdMsg"/> with selected UserID and <see cref="CloseChooseUserWndMsg"/></para>
+        /// <para>On fail - displays a Message Box.</para>
         /// </summary>
         [RelayCommand]
         private async Task LoginClick()
@@ -92,27 +108,30 @@ namespace DerpeWeather.ViewModels
 
             try
             {
-                var userLoginDTO = new UserLoginDTO()
+                var userLoginDTO = new UserDisplayInfoDTO()
                 {
                     Username = SelectedUser.Username,
                     AvatarPath = SelectedUser.AvatarPath
                 };
 
-                var userLoginWindow = _windowFactory.CreateWindow<UserLoginWindow>();
+                var userLoginWindow = _windowFactory.CreateWindow<UserLoginWindow>(App.Current.MainWindow);
                 _messenger.Send(new UserLoginDTOMsg(userLoginDTO));
 
                 userLoginWindow.ShowDialog();
+
                 if (userLoginWindow.IsLoginSuccessful)
                 {
                     var user = await _userRepo.GetUserAsync(SelectedUser.Username, _cts.Token);
                     var userId = user.Id;
 
-                    var mainWindow = _windowFactory.CreateWindow<MainWindow>();
+                    var mainWindow = _windowFactory.CreateWindow<MainWindow>(App.Current.MainWindow);
                     mainWindow.Show();
 
                     _messenger.Send(new UserLoginIdMsg(userId));
-                    _messenger.Send<CloseChooseUserWindowMsg>();
+                    _messenger.Send<CloseChooseUserWndMsg>();
                 }
+
+                userLoginWindow.Dispose();
             }
             catch (OperationCanceledException) 
             {
@@ -130,7 +149,6 @@ namespace DerpeWeather.ViewModels
         }
 
         /// <summary>
-        /// <para>Logic for clicking 'Register' button.</para>
         /// <para>Displays modal <see cref="UserRegistrationWindow"/> and prompts user to enter data for registration.</para>
         /// <para>On success - modal window saves user to database and this function calls <see cref="UpdateUsersList"/>.</para>
         /// <para>On fail - does nothing.</para>
@@ -138,22 +156,31 @@ namespace DerpeWeather.ViewModels
         [RelayCommand]
         private void RegisterNewUserClick()
         {
-            var userRegistrationWindow = _windowFactory.CreateWindow<UserRegistrationWindow>();
+            var userRegistrationWindow = _windowFactory.CreateWindow<UserRegistrationWindow>(App.Current.MainWindow);
             userRegistrationWindow.ShowDialog();
             
             if (userRegistrationWindow.IsRegistrationSuccessful)
             {
-                AdonisUI.Controls.MessageBox.Show(
-                    "Registration successful!",
-                    "Success!",
-                    AdonisUI.Controls.MessageBoxButton.OK,
-                    AdonisUI.Controls.MessageBoxImage.Information
+                Application.Current.Dispatcher.InvokeAsync(() => 
+                    AdonisUI.Controls.MessageBox.Show(
+                        "Registration successful!",
+                        "Success!",
+                        AdonisUI.Controls.MessageBoxButton.OK,
+                        AdonisUI.Controls.MessageBoxImage.Information
+                    )
                 );
 
                 UpdateUsersList();
             }
+
+            userRegistrationWindow.Dispose();
         }
 
+        /// <summary>
+        /// Displays modal <see cref="UserLoginWindow"/> that prompts user to enter password.
+        /// On success - deletes a user from database and <see cref="UsersList"/>.
+        /// On fail - does nothing.
+        /// </summary>
         [RelayCommand]
         private async Task DeleteSelectedUserClick()
         {
@@ -171,13 +198,13 @@ namespace DerpeWeather.ViewModels
 
             try
             {
-                var userLoginDTO = new UserLoginDTO()
+                var userLoginDTO = new UserDisplayInfoDTO()
                 {
                     Username = SelectedUser.Username,
                     AvatarPath = SelectedUser.AvatarPath
                 };
 
-                var userLoginWindow = _windowFactory.CreateWindow<UserLoginWindow>();
+                var userLoginWindow = _windowFactory.CreateWindow<UserLoginWindow>(App.Current.MainWindow);
                 _messenger.Send(new UserLoginDTOMsg(userLoginDTO));
 
                 userLoginWindow.ShowDialog();
@@ -185,8 +212,11 @@ namespace DerpeWeather.ViewModels
                 if (userLoginWindow.IsLoginSuccessful == true)
                 {
                     await _userRepo.DeleteUserAsync(SelectedUser.Username, _cts.Token);
-                    UpdateUsersList();
+                    UsersList.Remove(SelectedUser);
+                    SelectedUser = null;
                 }
+
+                userLoginWindow.Dispose();
             }
             catch (OperationCanceledException)
             {
@@ -201,6 +231,20 @@ namespace DerpeWeather.ViewModels
                     AdonisUI.Controls.MessageBoxImage.Error
                 );
             }
+        }
+
+        /// <summary>
+        /// Displays a modal <see cref="AppJsonSettingsWindow"/> that prompts to change app data.
+        /// On success - calls <see cref="OnValidAppJsonSettingsMsgReceived(object, ValidAppJsonSettingsMsg)"/>.
+        /// On fail - does nothing.
+        /// </summary>
+        [RelayCommand]
+        private void EditAppSettingsClick()
+        {
+            var appJsonSettingsWindow = _windowFactory.CreateWindow<AppJsonSettingsWindow>(App.Current.MainWindow);
+            appJsonSettingsWindow.ShowDialog();
+
+            // OnValidAppJsonSettingsMsgReceived is called.
         }
 
         #endregion
@@ -219,14 +263,16 @@ namespace DerpeWeather.ViewModels
                 var users = await _userRepo.GetAllUsersAsync(_cts.Token);
                 if (users != null)
                 {
+                    var tempList = new List<UserLoginListItem>();
                     foreach (var user in users)
                     {
-                        UsersList.Add(new UserLoginListItem()
+                        tempList.Add(new UserLoginListItem()
                         {
                             Username = user.Username,
                             AvatarPath = _avatarImageManager.GetUserAvatar(user.Id)!
                         });
                     }
+                    UsersList = new(tempList);
                 }
             }
             catch ( OperationCanceledException )
@@ -251,11 +297,38 @@ namespace DerpeWeather.ViewModels
         /// </summary>
         private async void UpdateUsersList()
         {
+            SwitchLoadingIndicatorState(true);
+
             UsersList.Clear();
             await LoadUsersListFromDbAsync();
+
+            SwitchLoadingIndicatorState(false);
         }
 
         #endregion
+
+
+
+        private void OnValidAppJsonSettingsMsgReceived(object recipient, ValidAppJsonSettingsMsg message)
+        {
+            _messenger.Send(new CloseChooseUserWndMsg());
+        }
+
+
+
+        private void SwitchLoadingIndicatorState(bool isLoading)
+        {
+            if (isLoading)
+            {
+                ButtonsEnabled = false;
+                LoadingIndicatorVisibility = Visibility.Visible;
+            }
+            else
+            {
+                LoadingIndicatorVisibility = Visibility.Collapsed;
+                ButtonsEnabled = true;
+            }
+        }
 
 
 
@@ -271,6 +344,7 @@ namespace DerpeWeather.ViewModels
                     _cts.Cancel();
                     _cts.Dispose();
                 }
+                UsersList = null;
                 disposedValue = true;
             }
         }

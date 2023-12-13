@@ -8,9 +8,14 @@ using DerpeWeather.DAL.EF;
 using DerpeWeather.Utilities.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
+using DerpeWeather.Utilities.Enums;
+using DerpeWeather.MVVM.Models;
 
 namespace DerpeWeather.DAL.Repos
 {
+    /// <summary>
+    /// Main implementation of <see cref="IUserRepo"/> interface.
+    /// </summary>
     public class UserRepo : IUserRepo
     {
         private readonly EFContext _dbContext;
@@ -39,7 +44,7 @@ namespace DerpeWeather.DAL.Repos
             UserAppPreferencesEntity userAppPreferences = new()
             {
                 Id = Guid.NewGuid(),
-                Theme = systemPreferenceFetcher.GetThemePreference(),
+                Theme = UserPreferenceTheme.SYSTEM,
                 Units = systemPreferenceFetcher.GetUnitsPreference()
             };
             newUser.AppPreferences = userAppPreferences;
@@ -64,7 +69,7 @@ namespace DerpeWeather.DAL.Repos
             UserAppPreferencesEntity userAppPreferences = new()
             {
                 Id = Guid.NewGuid(),
-                Theme = systemPreferenceFetcher.GetThemePreference(),
+                Theme = UserPreferenceTheme.SYSTEM,
                 Units = systemPreferenceFetcher.GetUnitsPreference()
             };
             newUser.AppPreferences = userAppPreferences;
@@ -82,7 +87,7 @@ namespace DerpeWeather.DAL.Repos
 
         #region READ
 
-        public ICollection<UserDTO> GetAllUsers()
+        public ICollection<User> GetAllUsers()
         {
             return _dbContext.Users
                 .Include(user => user.AppPreferences)
@@ -93,7 +98,7 @@ namespace DerpeWeather.DAL.Repos
 
 
 
-        public async Task<ICollection<UserDTO>> GetAllUsersAsync(CancellationToken cancellationToken)
+        public async Task<ICollection<User>> GetAllUsersAsync(CancellationToken cancellationToken)
         {
             return await _dbContext.Users
                 .Include(user => user.AppPreferences)
@@ -104,7 +109,7 @@ namespace DerpeWeather.DAL.Repos
 
 
 
-        public UserDTO? GetUser(Guid userId)
+        public User? GetUser(Guid userId)
         {
             var userEntity = _dbContext.Users.FirstOrDefault(x => x.Id == userId);
             if (userEntity == null) { return null; }
@@ -112,7 +117,7 @@ namespace DerpeWeather.DAL.Repos
             return ConvertToUserDTO(userEntity);
         }
 
-        public UserDTO? GetUser(string username)
+        public User? GetUser(string username)
         {
             var userEntity = _dbContext.Users.FirstOrDefault(x => x.Username == username);
             if (userEntity == null) { return null; }
@@ -122,7 +127,7 @@ namespace DerpeWeather.DAL.Repos
 
 
 
-        public async Task<UserDTO?> GetUserAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<User?> GetUserAsync(Guid userId, CancellationToken cancellationToken)
         {
             var userEntity = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken: cancellationToken);
             if (userEntity == null)
@@ -132,7 +137,7 @@ namespace DerpeWeather.DAL.Repos
             return ConvertToUserDTO(userEntity);
         }
 
-        public async Task<UserDTO?> GetUserAsync(string username, CancellationToken cancellationToken)
+        public async Task<User?> GetUserAsync(string username, CancellationToken cancellationToken)
         {
             var userEntity = await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken: cancellationToken);
             if (userEntity == null)
@@ -269,7 +274,7 @@ namespace DerpeWeather.DAL.Repos
 
 
 
-        private void AddNewTrackedLocation(UserEntity? existingUser, string locationName)
+        private void AddNewTrackedLocation(UserEntity? existingUser, string locationName, string resolvedLocationName)
         {
             if (existingUser != null)
             {
@@ -278,6 +283,7 @@ namespace DerpeWeather.DAL.Repos
                 var field = new UserTrackedWeatherFieldsEntity()
                 {
                     Location = locationName,
+                    ResolvedLocation = resolvedLocationName,
                     UserId = existingUser.Id,
                     User = existingUser
                 };
@@ -286,21 +292,21 @@ namespace DerpeWeather.DAL.Repos
             }
         }
 
-        public void AddNewTrackedLocation(Guid userId, string locationName)
+        public void AddNewTrackedLocation(Guid userId, string locationName, string resolvedLocationName)
         {
             UserEntity? user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
-            AddNewTrackedLocation(user, locationName);
+            AddNewTrackedLocation(user, locationName, resolvedLocationName);
         }
 
-        public void AddNewTrackedLocation(string username, string locationName)
+        public void AddNewTrackedLocation(string username, string locationName, string resolvedLocationName)
         {
             UserEntity? user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
-            AddNewTrackedLocation(user, locationName);
+            AddNewTrackedLocation(user, locationName, resolvedLocationName);
         }
 
 
 
-        private async Task AddNewTrackedLocationAsync(UserEntity? existingUser, string locationName, CancellationToken cancellationToken)
+        private async Task AddNewTrackedLocationAsync(UserEntity? existingUser, string locationName, string resolvedLocationName, CancellationToken cancellationToken)
         {
             if (existingUser != null)
             {
@@ -309,6 +315,7 @@ namespace DerpeWeather.DAL.Repos
                 var field = new UserTrackedWeatherFieldsEntity()
                 {
                     Location = locationName,
+                    ResolvedLocation = resolvedLocationName,
                     UserId = existingUser.Id,
                     User = existingUser
                 };
@@ -317,16 +324,107 @@ namespace DerpeWeather.DAL.Repos
             }
         }
 
-        public async Task AddNewTrackedLocationAsync(Guid userId, string locationName, CancellationToken cancellationToken)
+        public async Task AddNewTrackedLocationAsync(Guid userId, string locationName, string resolvedLocationName, CancellationToken cancellationToken)
         {
             UserEntity? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
-            await AddNewTrackedLocationAsync(user, locationName, cancellationToken);
+            await AddNewTrackedLocationAsync(user, locationName, resolvedLocationName, cancellationToken);
         }
 
-        public async Task AddNewTrackedLocationAsync(string username, string locationName, CancellationToken cancellationToken)
+        public async Task AddNewTrackedLocationAsync(string username, string locationName, string resolvedLocationName, CancellationToken cancellationToken)
         {
             UserEntity? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken: cancellationToken);
-            await AddNewTrackedLocationAsync(user, locationName, cancellationToken);
+            await AddNewTrackedLocationAsync(user, locationName, resolvedLocationName, cancellationToken);
+        }
+
+
+
+        private void UpdateUserTheme(UserEntity? existingUser, UserPreferenceTheme theme)
+        {
+            if (existingUser != null)
+            {
+                existingUser.AppPreferences.Theme = theme;
+                _dbContext.SaveChanges();
+            }
+        }
+
+        public void UpdateUserTheme(Guid userId, UserPreferenceTheme theme)
+        {
+            UserEntity? existingUser = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+            UpdateUserTheme(existingUser, theme);
+        }
+
+        public void UpdateUserTheme(string username, UserPreferenceTheme theme)
+        {
+            UserEntity? existingUser = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            UpdateUserTheme(existingUser, theme);
+        }
+
+
+        private async Task UpdateUserThemeAsync(UserEntity? existingUser, UserPreferenceTheme theme, CancellationToken cancellationToken)
+        {
+            if (existingUser != null)
+            {
+                existingUser.AppPreferences.Theme = theme;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        public async Task UpdateUserThemeAsync(Guid userId, UserPreferenceTheme theme, CancellationToken cancellationToken)
+        {
+            UserEntity? existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+            await UpdateUserThemeAsync(existingUser, theme, cancellationToken);
+        }
+
+        public async Task UpdateUserThemeAsync(string username, UserPreferenceTheme theme, CancellationToken cancellationToken)
+        {
+            UserEntity? existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken: cancellationToken);
+            await UpdateUserThemeAsync(existingUser, theme, cancellationToken);
+        }
+
+
+
+        private void UpdateUserUnits(UserEntity? existingUser, UserPreferenceUnits units)
+        {
+            if (existingUser != null)
+            {
+                existingUser.AppPreferences.Units = units;
+                _dbContext.SaveChanges();
+            }
+        }
+
+        public void UpdateUserUnits(Guid userId, UserPreferenceUnits units)
+        {
+            UserEntity? existingUser = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+            UpdateUserUnits(existingUser, units);
+        }
+
+        public void UpdateUserUnits(string username, UserPreferenceUnits units)
+        {
+            UserEntity? existingUser = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            UpdateUserUnits(existingUser, units);
+        }
+
+
+
+        private async Task UpdateUserUnitsAsync(UserEntity? existingUser, UserPreferenceUnits units, CancellationToken cancellationToken)
+        {
+            if (existingUser != null)
+            {
+                existingUser.AppPreferences.Units = units;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        public async Task UpdateUserUnitsAsync(Guid userId, UserPreferenceUnits units, CancellationToken cancellationToken)
+        {
+            UserEntity? existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+            await UpdateUserUnitsAsync(existingUser, units, cancellationToken);
+        }
+
+        public async Task UpdateUserUnitsAsync(string username, UserPreferenceUnits units, CancellationToken cancellationToken)
+        {
+            UserEntity? existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken: cancellationToken);
+            await UpdateUserUnitsAsync(existingUser, units, cancellationToken);
         }
 
         #endregion
@@ -423,9 +521,9 @@ namespace DerpeWeather.DAL.Repos
 
         #region Helpers
 
-        private static UserDTO ConvertToUserDTO(UserEntity userEntity)
+        private static User ConvertToUserDTO(UserEntity userEntity)
         {
-            var userDTO = new UserDTO()
+            var userDTO = new User()
             {
                 Id = userEntity.Id,
                 Username = userEntity.Username,
@@ -438,7 +536,8 @@ namespace DerpeWeather.DAL.Repos
                     .Select(field => new MVVM.Models.UserTrackedWeatherField
                     {
                         Id = field.Id,
-                        Location = field.Location
+                        Location = field.Location,
+                        ResolvedLocation = field.ResolvedLocation
                     })
                     .ToList()
             };

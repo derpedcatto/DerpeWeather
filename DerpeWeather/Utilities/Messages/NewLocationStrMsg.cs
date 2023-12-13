@@ -8,8 +8,8 @@ namespace DerpeWeather.Utilities.Messages
     /// to <see cref="MVVM.ViewModels.MainWindowVM"/> 
     /// to update ListView with new field.
     /// </summary>
-    public class NewTrackedWeatherLocationMsg : ValueChangedMessage<string>
+    public class NewLocationStrMsg : ValueChangedMessage<string>
     {
-        public NewTrackedWeatherLocationMsg(string message) : base(message) { }
+        public NewLocationStrMsg(string message) : base(message) { }
     }
 }

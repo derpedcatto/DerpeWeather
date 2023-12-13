@@ -2,6 +2,9 @@
 
 namespace DerpeWeather.MVVM.Models
 {
+    /// <summary>
+    /// Model that represents User App Preferences.
+    /// </summary>
     public class UserAppPreferences
     {
         public UserPreferenceTheme Theme { get; set; }

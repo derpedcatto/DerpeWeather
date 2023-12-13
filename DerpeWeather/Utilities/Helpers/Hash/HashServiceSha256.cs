@@ -7,7 +7,8 @@ using DerpeWeather.Utilities.Interfaces;
 namespace DerpeWeather.Utilities.Helpers.Hash
 {
     /// <summary>
-    /// Hashing service that uses <see cref="IHashService"/> interface.
+    /// Hashing service that implements <see cref="IHashService"/> interface.
+    /// Uses `SHA-256` algorithm.
     /// </summary>
     public class HashServiceSha256 : IHashService
     {

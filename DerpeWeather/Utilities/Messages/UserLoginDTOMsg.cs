@@ -4,11 +4,11 @@ using DerpeWeather.DAL.DTO;
 namespace DerpeWeather.Utilities.Messages
 {
     /// <summary>
-    /// Message that passes <see cref="UserLoginDTO"/>.
+    /// Message that passes <see cref="UserDisplayInfoDTO"/>.
     /// </summary>
-    public class UserLoginDTOMsg : ValueChangedMessage<UserLoginDTO>
+    public class UserLoginDTOMsg : ValueChangedMessage<UserDisplayInfoDTO>
     {
-        public UserLoginDTOMsg(UserLoginDTO value) : base(value)
+        public UserLoginDTOMsg(UserDisplayInfoDTO value) : base(value)
         {
         }
     }

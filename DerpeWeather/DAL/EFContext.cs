@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DerpeWeather.DAL
 {
+    /// <summary>
+    /// Custom Entity Framework context for this app.
+    /// </summary>
     public class EFContext : DbContext
     {
         public DbSet<UserEntity> Users { get; set; }

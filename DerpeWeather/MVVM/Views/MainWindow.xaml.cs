@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using DerpeWeather.MVVM.ViewModels;
 using DerpeWeather.Utilities.Messages;
-using DerpeWeather.Views;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,11 +20,11 @@ namespace DerpeWeather
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public MainWindow(
-            MainWindowVM viewModel,
-            IMessenger messenger)
+        public MainWindow(MainWindowVM viewModel, IMessenger messenger)
         {
             InitializeComponent();
+            App.Current.MainWindow = this;
+
             _viewModel = viewModel;
             DataContext = _viewModel;
 

@@ -5,7 +5,12 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>derpe.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="derpe.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AdonisUI" Version="1.17.1" />

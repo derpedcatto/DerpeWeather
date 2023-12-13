@@ -1,6 +1,7 @@
 ﻿using DerpeWeather.Utilities.Interfaces;
 using Microsoft.Win32;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 
@@ -41,6 +42,8 @@ namespace DerpeWeather.Utilities.Helpers.UserData
                         AdonisUI.Controls.MessageBoxButton.OK,
                         AdonisUI.Controls.MessageBoxImage.Exclamation
                     );
+
+                    SetDefaultAvatar(userId);
                 }
 
                 return Path.Combine(userFolderPath, avatarPath!);
@@ -77,7 +80,7 @@ namespace DerpeWeather.Utilities.Helpers.UserData
             DeleteAvatarFiles(userDir);
 
             string imageExtension = Path.GetExtension(avatarPath);
-            string newAvatarPath = Path.Combine(userDir, $"{App.UserAvatarFileName}.{Path.GetExtension(imageExtension)}");
+            string newAvatarPath = Path.Combine(userDir, $"{App.UserAvatarFileName}{Path.GetExtension(imageExtension)}");
 
             File.Copy(avatarPath, newAvatarPath);
         }
@@ -90,8 +93,11 @@ namespace DerpeWeather.Utilities.Helpers.UserData
             DeleteAvatarFiles(userDir);
 
             string newAvatarPath = Path.Combine(userDir, $"{App.UserAvatarFileName}.png");
-            App.DefaultUserAvatar.Save(newAvatarPath, System.Drawing.Imaging.ImageFormat.Png);
+
+            using Bitmap tempBitmap = new(App.DefaultUserAvatarImage);
+            tempBitmap.Save(newAvatarPath, System.Drawing.Imaging.ImageFormat.Png);
         }
+
 
 
         /// <summary>

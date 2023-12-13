@@ -1,17 +1,22 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DerpeWeather.MVVM.Models;
 using DerpeWeather.Utilities.Interfaces;
 using DerpeWeather.Utilities.Messages;
 using System;
 using System.Security;
-using System.Threading.Tasks;
 
 namespace DerpeWeather.ViewModels
 {
+    /// <summary>
+    /// ViewModel for <see cref="UserLoginWindow"/>.
+    /// </summary>
     public partial class UserLoginVM : ObservableObject, IDisposable
     {
         #region Variables
+
+        private bool disposedValue;
 
         private readonly IHashService _hashService;
         private readonly IMessenger _messenger;
@@ -21,11 +26,7 @@ namespace DerpeWeather.ViewModels
         [ObservableProperty]
         private bool isLoginSuccessful;
 
-        [ObservableProperty]
-        private string _Username;
-        [ObservableProperty]
-        private string _AvatarPath;
-        private bool disposedValue;
+        public UserLoginListItem SelectedUser { get; private set; }
 
         #endregion
 
@@ -51,7 +52,7 @@ namespace DerpeWeather.ViewModels
 
 
         /// <summary>
-        /// Logic for clicking 'Login' button. Sets <see cref="IsLoginSuccessful"/> to 'true' on validation success.
+        /// Sets <see cref="IsLoginSuccessful"/> to 'true' on validation success.
         /// </summary>
         /// <param name="o"><see cref="IPasswordContainer"/> instance.</param>
         [RelayCommand]
@@ -65,7 +66,7 @@ namespace DerpeWeather.ViewModels
         }
 
         /// <summary>
-        /// Validates user password in DB.
+        /// Validates user password with the one in in DB.
         /// </summary>
         /// <param name="password">User inputted password.</param>
         /// <returns>
@@ -78,7 +79,7 @@ namespace DerpeWeather.ViewModels
 
             if (errorMsg == string.Empty)
             {
-                var userId = _userRepo.GetUser(Username)!.Id;
+                var userId = _userRepo.GetUser(SelectedUser.Username)!.Id;
                 string hashedPassword = _hashService.HashString(password);
                 password.Dispose();
 
@@ -118,8 +119,16 @@ namespace DerpeWeather.ViewModels
         /// <param name="message">Contains user data for displaying in window.</param>
         private void OnUserLoginDTOReceived(object recipient, UserLoginDTOMsg message)
         {
+            SelectedUser = new()
+            {
+                Username = message.Value.Username,
+                AvatarPath = message.Value.AvatarPath
+            };
+
+            /*
             Username = message.Value.Username;
             AvatarPath = message.Value.AvatarPath;
+            */
         }
 
 

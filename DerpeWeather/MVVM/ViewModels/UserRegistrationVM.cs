@@ -12,11 +12,15 @@ using System.Threading.Tasks;
 
 namespace DerpeWeather.ViewModels
 {
+    /// <summary>
+    /// ViewModel for <see cref="UserRegistrationWindow"/>.
+    /// </summary>
     public partial class UserRegistrationVM : ObservableObject, IDisposable
     {
         #region Variables 
 
         private readonly CancellationTokenSource _cts;
+        private bool disposedValue;
 
         private readonly IHashService _hashService;
         private readonly IUserRepo _userRepo;
@@ -29,8 +33,8 @@ namespace DerpeWeather.ViewModels
         private string? _Username;
         [ObservableProperty]
         private string? _UserAttachmentBtnString;
+
         private string? _userAvatarPath;
-        private bool disposedValue;
 
         #endregion
 
@@ -64,7 +68,7 @@ namespace DerpeWeather.ViewModels
 
 
         /// <summary>
-        /// Logic on clicking 'Add Attachment' button. Sets <see cref="UserAttachmentBtnString"/> as path to prompted avatar file. 
+        /// Sets <see cref="UserAttachmentBtnString"/> as path to prompted avatar file. 
         /// On error - displays error MessageBox.
         /// </summary>
         [RelayCommand]
@@ -93,7 +97,7 @@ namespace DerpeWeather.ViewModels
         }
 
         /// <summary>
-        /// Logic on clicking 'Register' button. Validates inputted data through <see cref="IsUserDataValid(string, SecureString, string)"/>
+        /// Validates inputted data through <see cref="IsUserDataValid(string, SecureString, string)"/>
         /// and saves user to database and sets <see cref="IsRegistrationSuccessful"/> to 'true' on success.
         /// </summary>
         /// <param name="o"></param>

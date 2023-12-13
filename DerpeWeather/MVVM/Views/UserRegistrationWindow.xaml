@@ -32,9 +32,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid
-        Margin="20"
-        ShowGridLines="False">
+    <Grid Margin="20">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>

@@ -2,11 +2,16 @@
 using DerpeWeather.Utilities.Interfaces;
 using RestSharp;
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DerpeWeather.Utilities.Helpers.WeatherApi
 {
-    public class WeatherApiClient : IWeatherApiClient, IDisposable
+    /// <summary>
+    /// Implementation of the <see cref="IWeatherApiClient"/> interface that uses VisualCrossing to fetch data.
+    /// </summary>
+    public class VisualCrossingWeatherApiClient : IWeatherApiClient, IDisposable
     {
         private readonly IRestClient _restClient;
         private readonly IUserRepo _userRepo;
@@ -14,7 +19,10 @@ namespace DerpeWeather.Utilities.Helpers.WeatherApi
 
 
 
-        public WeatherApiClient(IRestClient restClient, IUserRepo userRepo)
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public VisualCrossingWeatherApiClient(IRestClient restClient, IUserRepo userRepo)
         {
             _restClient = restClient;
             _userRepo = userRepo;
@@ -22,7 +30,7 @@ namespace DerpeWeather.Utilities.Helpers.WeatherApi
 
 
 
-        public async Task<UserTrackedWeatherFieldItem>? GetWeatherDataForToday(Guid userId, string locationName)
+        public async Task<UserTrackedWeatherFieldItem>? GetWeatherData(Guid userId, string locationName, CancellationToken cancellationToken)
         {
             var user = _userRepo.GetUser(userId);
             var unitGroup = user.Preferences.Units switch
@@ -34,25 +42,52 @@ namespace DerpeWeather.Utilities.Helpers.WeatherApi
 
 
             var request = new RestRequest(@$"{locationName}?unitGroup={unitGroup}&key={App.WeatherAPIKey}&contentType=json", Method.Get);
-            var response = await _restClient.ExecuteAsync<WeatherApiResponse>(request);
+            var response = await _restClient.ExecuteAsync<WeatherApiResponse>(request, cancellationToken: cancellationToken);
 
             if (response.IsSuccessful)
             {
                 var apiResponse = response.Data;
 
+                var weatherDetails = apiResponse.Days.Select(day => new WeatherDetailsItem
+                {
+                    Datetime = day.Datetime,
+                    Tempmax = day.Tempmax,
+                    Tempmin = day.Tempmin,
+                    Temp = day.Temp,
+                    Feelslike = day.Feelslike,
+                    Humidity = day.Humidity,
+                    Snow = day.Snow,
+                    Pressure = day.Pressure,
+                    Visibility = day.Visibility,
+                    Conditions = day.Conditions,
+                    Description = day.Description
+                }).ToList();
+
                 return new UserTrackedWeatherFieldItem
                 {
                     Location = apiResponse.Address,
+                    ResolvedLocation = apiResponse.ResolvedAddress,
                     Timezone = apiResponse.Timezone,
                     Temperature = apiResponse.CurrentConditions.Temp.ToString(),
                     Condition = apiResponse.CurrentConditions.Conditions,
-                    Description = apiResponse.Description
+                    Description = apiResponse.Description,
+                    WeatherDetails = weatherDetails
                 };
             }
             else
             {
                 return null;
             }
+        }
+
+
+
+        public async Task<bool> ValidateApiKey(string apiKey, CancellationToken cancellationToken)
+        {
+            var request = new RestRequest(@$"London?unitGroup=us&include=current&key={apiKey}&contentType=json", Method.Get);
+            var response = await _restClient.ExecuteAsync(request, cancellationToken);
+
+            return response.IsSuccessful;
         }
 
 

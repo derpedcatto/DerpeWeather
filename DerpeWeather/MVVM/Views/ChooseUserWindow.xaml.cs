@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using DerpeWeather.Utilities.Messages;
 using DerpeWeather.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Windows;
 
 namespace DerpeWeather.Views
@@ -23,16 +21,18 @@ namespace DerpeWeather.Views
         public ChooseUserWindow(ChooseUserVM viewModel, IMessenger messenger)
         {
             InitializeComponent();
+            App.Current.MainWindow = this;
+
             _viewModel = viewModel;
             DataContext = _viewModel;
 
             _messenger = messenger;
-            _messenger.Register<CloseChooseUserWindowMsg>(this, CloseChooseUserWindowMsgReceived);
+            _messenger.Register<CloseChooseUserWndMsg>(this, CloseChooseUserWindowMsgReceived);
         }
 
 
 
-        private void CloseChooseUserWindowMsgReceived(object recipient, CloseChooseUserWindowMsg message)
+        private void CloseChooseUserWindowMsgReceived(object recipient, CloseChooseUserWndMsg message)
         {
             this.Close();
         }

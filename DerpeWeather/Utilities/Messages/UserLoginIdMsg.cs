@@ -4,7 +4,8 @@ using System;
 namespace DerpeWeather.Utilities.Messages
 {
     /// <summary>
-    /// Message that passes <see cref="Guid"/> UserID to a window that works with logged in user.
+    /// Message that passes <see cref="Guid"/> UserID from <see cref="ChooseUserVM"/>
+    /// to a window that works with logged in user.
     /// </summary>
     public class UserLoginIdMsg : ValueChangedMessage<System.Guid>
     {

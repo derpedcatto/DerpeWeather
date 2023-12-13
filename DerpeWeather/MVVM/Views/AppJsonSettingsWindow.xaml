@@ -1,0 +1,74 @@
+﻿<Window
+    x:Class="DerpeWeather.MVVM.Views.AppJsonSettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:System="clr-namespace:System;assembly=netstandard"
+    xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:DerpeWeather.MVVM.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="App Settings"
+    Width="500"
+    Height="270"
+    ResizeMode="CanMinimize"
+    mc:Ignorable="d">
+    <Window.Style>
+        <Style
+            BasedOn="{StaticResource {x:Type Window}}"
+            TargetType="Window" />
+    </Window.Style>
+    <Window.Resources>
+        <System:Double x:Key="FontSizeLabel">20</System:Double>
+        <System:Double x:Key="FontSizeBox">16</System:Double>
+        <System:Double x:Key="FontSizeButtonRegister">20</System:Double>
+
+        <Style
+            BasedOn="{StaticResource {x:Type TextBlock}}"
+            TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{StaticResource FontSizeLabel}" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding" Value="0,0,0,5" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="0.5*" />
+        </Grid.RowDefinitions>
+
+        <!--  Username  -->
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="SQL Connection String" />
+            <TextBox
+                adonisExtensions:ValidationExtension.IsErrorMessageVisibleOnFocus="True"
+                adonisExtensions:WatermarkExtension.Watermark="Enter SQL Connection String"
+                FontSize="{StaticResource FontSizeBox}"
+                Text="{Binding SQLConnectionString}" />
+        </StackPanel>
+
+        <!--  Password  -->
+        <StackPanel Grid.Row="1">
+            <TextBlock Text="Weather API Key" />
+            <TextBox
+                adonisExtensions:ValidationExtension.IsErrorMessageVisibleOnFocus="True"
+                adonisExtensions:WatermarkExtension.Watermark="Enter Weather API Key"
+                FontSize="{StaticResource FontSizeBox}"
+                Text="{Binding WeatherAPIKey}" />
+        </StackPanel>
+
+        <!--  Register  -->
+        <StackPanel Grid.Row="2">
+            <Button
+                Command="{Binding SaveSettingsBtnClickCommand}"
+                Content="Save"
+                FontSize="{StaticResource FontSizeButtonRegister}"
+                FontWeight="DemiBold"
+                IsEnabled="{Binding ButtonsBlocked}" />
+        </StackPanel>
+    </Grid>
+</Window>

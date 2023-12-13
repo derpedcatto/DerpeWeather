@@ -23,12 +23,12 @@ namespace DerpeWeather.MVVM.Views
 
             _messenger = messenger;
 
-            _messenger.Register<CloseAddLocationWindowMsg>(this, OnCloseAddLocationWindowMsgReceived);
+            _messenger.Register<CloseAddLocationWndMsg>(this, OnCloseAddLocationWindowMsgReceived);
         }
 
 
 
-        private void OnCloseAddLocationWindowMsgReceived(object recipient, CloseAddLocationWindowMsg message)
+        private void OnCloseAddLocationWindowMsgReceived(object recipient, CloseAddLocationWndMsg message)
         {
             this.Close();
         }

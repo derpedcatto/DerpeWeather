@@ -17,34 +17,12 @@ namespace DerpeWeather.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.25")
+                .HasAnnotation("ProductVersion", "7.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("DerpeWeather.Models.EF.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Username")
-                        .IsUnique();
-
-                    b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("DerpeWeather.Models.EF.UserAppPreferences", b =>
+            modelBuilder.Entity("DerpeWeather.DAL.EF.UserAppPreferencesEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -67,13 +45,39 @@ namespace DerpeWeather.Migrations
                     b.ToTable("UserAppPreferences");
                 });
 
-            modelBuilder.Entity("DerpeWeather.Models.EF.UserTrackedWeatherFields", b =>
+            modelBuilder.Entity("DerpeWeather.DAL.EF.UserEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("DerpeWeather.DAL.EF.UserTrackedWeatherFieldsEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResolvedLocation")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -87,20 +91,20 @@ namespace DerpeWeather.Migrations
                     b.ToTable("UserTrackedWeatherFields");
                 });
 
-            modelBuilder.Entity("DerpeWeather.Models.EF.UserAppPreferences", b =>
+            modelBuilder.Entity("DerpeWeather.DAL.EF.UserAppPreferencesEntity", b =>
                 {
-                    b.HasOne("DerpeWeather.Models.EF.User", "User")
+                    b.HasOne("DerpeWeather.DAL.EF.UserEntity", "User")
                         .WithOne("AppPreferences")
-                        .HasForeignKey("DerpeWeather.Models.EF.UserAppPreferences", "UserId")
+                        .HasForeignKey("DerpeWeather.DAL.EF.UserAppPreferencesEntity", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DerpeWeather.Models.EF.UserTrackedWeatherFields", b =>
+            modelBuilder.Entity("DerpeWeather.DAL.EF.UserTrackedWeatherFieldsEntity", b =>
                 {
-                    b.HasOne("DerpeWeather.Models.EF.User", "User")
+                    b.HasOne("DerpeWeather.DAL.EF.UserEntity", "User")
                         .WithMany("TrackedWeatherFields")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -109,7 +113,7 @@ namespace DerpeWeather.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DerpeWeather.Models.EF.User", b =>
+            modelBuilder.Entity("DerpeWeather.DAL.EF.UserEntity", b =>
                 {
                     b.Navigation("AppPreferences")
                         .IsRequired();
